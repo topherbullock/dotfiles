@@ -3,17 +3,14 @@
 set -eu -o pipefail
 
 declare UPDATE=0 INTERACTIVE=1
-declare VIMCMD='vim'
+declare VIMCMD='nvim'
 declare NPM='npm'
 declare PIP='pip'
 
 readonly VIMFILES_PATH="${HOME}/.vim"
-readonly FILES_TO_LINK="vimrc gvimrc"
-readonly LOCALS=".vimrc.local.before .vimrc.local .vimrc.local.plugins"
 
 readonly GREEN='\033[0;32m'
 readonly YELLOW='\033[0;33m'
-readonly RED='\033[0;31m'
 readonly BOLD=$(tput bold)
 readonly NORMAL=$(tput sgr0)
 readonly END_COLOR='\033[0;m'
@@ -22,50 +19,6 @@ DEBUG=${DEBUG:-}
 if [[ ${DEBUG} ]]; then
   set -x
 fi
-
-print_usage() {
-  echo -e "Unsupported option: $*"
-  echo -e "Supported options:"
-  echo -e "\\t-u, --update          \\tUpdate all plugins."
-  echo -e "\\t-n, --non-interactive \\tDon't show vim while installing plugins."
-}
-
-parse_flags() {
-  if [[ -t 0 ]]
-  then
-    INTERACTIVE=1
-  else
-    echo "Detected non-interactive shell, forcing --non-interactive"
-    INTERACTIVE=0
-  fi
-
-  while [[ $# -gt 0 ]]; do
-    key="$1"
-
-    case $key in
-      -n|--non-interactive)
-        INTERACTIVE=0
-        shift
-        ;;
-      -u|--update)
-        UPDATE=1
-        shift
-        ;;
-      *)
-        print_usage "$key"
-        exit 1
-        ;;
-    esac
-  done
-
-  readonly INTERACTIVE UPDATE
-}
-
-fail() {
-  declare message=$1
-  echo -e "${RED}${BOLD}${message}${NORMAL}"
-  exit 1
-}
 
 install_dotfiles() {
   declare script_name=$0
@@ -76,67 +29,22 @@ install_dotfiles() {
     dir="$(cd "${dir}"/.. && pwd)"
   fi
 
-  cp -R $dir/.config/.fish $HOME/.config/.fish
-  cp -R $dir/.vim/ $HOME/.vim
-  cp $dir/.tmux.conf $HOME/
-}
+  cp "${dir}/.tmux.conf" $HOME
+  cp "${dir}/.zshrc" $HOME
+  cp -R "${dir}/.vim" $VIMFILES_PATH
 
-setup_neovim_config() {
+  #XDG
+  ## https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html
   mkdir -p "${XDG_CONFIG_HOME:="${HOME}/.config"}"
+  cp -R $dir/.config/.fish $HOME/.config/.fish
   if [[ ! -e "${XDG_CONFIG_HOME}/nvim" ]]; then
     ln -s "${VIMFILES_PATH}" "${XDG_CONFIG_HOME}/nvim"
   fi
 }
 
-initialize_vimfiles() {
-  (
-  cd "${VIMFILES_PATH}" || exit 2
-  if [ -e bundle ]; then
-    rm -rf bundle
-  fi
-  git submodule update --init --recursive
-
-  for file in ${LOCALS}; do
-    dot_file="${HOME}/${file}"
-    touch "${dot_file}"
-  done
-
-  for file in ${FILES_TO_LINK}; do
-    dot_file="${HOME}/.${file}"
-    if [[ ! -e "${dot_file}" ]]; then
-      ln -s "${PWD}/${file}" "${dot_file}"
-    fi
-  done
-  )
-}
-
-install_vim_update() {
-  local install_path
-
-  if [[ "$(uname)" == "Darwin" ]]; then
-    install_path=/usr/local/bin
-  elif [[ "$(uname)" == *"Linux"* ]]; then
-    install_path="${HOME}/bin"
-  fi
-
-  if [[ -L "${install_path}/vim-update" ]]; then
-    rm -f "${install_path}/vim-update"
-  fi
-
-  if [[ ! -L "${install_path}/vim-update" ]]; then
-    mkdir -p "${install_path}"
-    ln -s "${VIMFILES_PATH}/bin/update" "${install_path}/vim-update"
-  fi
-}
-
-setup_neovim_python3() {
-  if which pacman > /dev/null ; then
-    sudo $PIP uninstall -y greenlet 2>/dev/null >/dev/null || true
-    sudo pacman -S --needed --noconfirm python-greenlet
-    sudo $PIP install --upgrade neovim
-    return 0
-  fi
-
+setup_neovim() {
+  sudo apt -y install nvim
+  sudo apt -y install python3-pip
   $PIP install --upgrade neovim
 }
 
@@ -160,43 +68,27 @@ install_plugins() {
 
   ALL_PLUGINS='true' ${VIMCMD} +'PlugClean!' +'PlugUpdate!' +'qall!'
 
-  if has_neovim; then
-    ${VIMCMD} +'UpdateRemotePlugins' +'qall!'
-    echo
-  fi
+  ${VIMCMD} +'UpdateRemotePlugins' +'qall!'
+  echo
 
   echo -e "${GREEN}DONE${END_COLOR} ${BOLD}vim plugins${NORMAL}" >&4
 }
 
-install_apt_deps(){
+main() {
+  # update
+  git submodule update --init --recursive
   sudo apt update
 
-  # terminal
-  sudo apt -y install fish
-  sudo apt -y install tmux
-  sudo apt -y install silversearcher-ag
-
-  # essential tooling
-  sudo apt -y install git jq curl htop
-
-  # nvim & pynvim
-  sudo apt -y install nvim python3-pip
-  sudo pip3 install pynvim
-}
-
-main() {
-  parse_flags "$@"
-
+  # dotfiles -> HOME
   install_dotfiles
-  install_apt_deps
 
-  setup_vimfiles_dir
-  has_neovim && setup_neovim_config
+  # essentials
+  sudo apt -y install git jq curl htop silversearcher-ag
+  # tmux
+  sudo apt -y install tmux
 
-  initialize_vimfiles
-  install_vim_update
+  setup_neovim
 
-  setup_neovim_python3
 
   setup_vim_calls
 

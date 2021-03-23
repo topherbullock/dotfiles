@@ -1,0 +1,3 @@
+[submodule ".config/fish/plugin-foreign-env"]
+	path = .config/fish/plugin-foreign-env
+	url = git@github.com:oh-my-fish/plugin-foreign-env.git
