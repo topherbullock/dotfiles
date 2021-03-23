@@ -1,0 +1,18 @@
+"languageserver": {
+  "sorbet": {
+    "args": [
+      "tc",
+      "--lsp",
+      "--enable-all-experimental-lsp-features"
+    ],
+    "command": "./bin/srb",
+    "filetypes": [
+      "ruby"
+    ],
+    "initializationOptions": {},
+    "rootPatterns": [
+      "sorbet/config"
+    ],
+    "settings": {}
+  }
+},
