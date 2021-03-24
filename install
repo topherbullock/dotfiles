@@ -76,6 +76,9 @@ main() {
   # tmux
   sudo apt -y install tmux
 
+  # golang
+  sudo apt -y install golang
+
   setup_neovim
 
   return 0
