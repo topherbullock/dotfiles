@@ -61,7 +61,7 @@ install_plugins() {
   ${VIMCMD} +'UpdateRemotePlugins' +'qall!'
   echo
 
-  echo -e "${GREEN}DONE${END_COLOR} ${BOLD}vim plugins${NORMAL}" >&4
+  echo -e "${GREEN}DONE${END_COLOR} ${BOLD}vim plugins${NORMAL}"
 }
 
 main() {

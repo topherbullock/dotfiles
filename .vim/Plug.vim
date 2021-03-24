@@ -255,6 +255,4 @@ Plug 'janko/vim-test'
 Plug 'Shougo/vimproc.vim', {'do' : 'make'}
 " }}}
 
-source $HOME/.vimrc.local.plugins
-
 call plug#end()
