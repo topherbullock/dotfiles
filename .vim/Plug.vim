@@ -187,7 +187,7 @@ Plug 'ngmy/vim-rubocop', { 'for': ['ruby', 'rake'] }
 " }}}
 
 " Go {{{
-Plug 'fatih/vim-go', { 'do': ':GoInstallBinaries' }
+" Plug 'fatih/vim-go', { 'do': ':GoInstallBinaries' }
 " }}}
 
 " Markdown {{{
