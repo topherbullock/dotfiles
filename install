@@ -5,7 +5,7 @@ set -eu -o pipefail
 declare UPDATE=0 INTERACTIVE=1
 declare VIMCMD='nvim'
 declare NPM='npm'
-declare PIP='pip'
+declare PIP='pip3'
 
 readonly VIMFILES_PATH="${HOME}/.vim"
 
