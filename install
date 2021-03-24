@@ -44,9 +44,12 @@ install_dotfiles() {
 }
 
 setup_neovim() {
-  sudo apt -y install neovim
   sudo apt -y install python3-pip
-  $PIP install --upgrade neovim
+  sudo apt -y install neovim
+
+  sudo $PIP install --upgrade neovim
+  gem install neovim
+
   install_plugins
 }
 
